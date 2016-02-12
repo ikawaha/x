@@ -11,6 +11,14 @@ const (
 	ProlongedSoundMark = '\u30FC'
 )
 
+var latinSymbols = &unicode.RangeTable{
+	R16: []unicode.Range16{
+		{0x0021, 0x0040, 1},
+		{0x005B, 0x0060, 1},
+		{0x007B, 0x007E, 1},
+	},
+}
+
 var neologdReplacer = strings.NewReplacer(
 	"０", "0", "１", "1", "２", "2", "３", "3", "４", "4",
 	"５", "5", "６", "6", "７", "7", "８", "8", "９", "9",
@@ -89,9 +97,10 @@ func NewNeologdNormalizer() *NeologdNormalizer {
 }
 
 func (n NeologdNormalizer) Normalize(s string) string {
-	return n.EliminateSpace(
-		n.ShurinkProlongedSoundMark(
-			n.CharReplace(s)))
+	s = n.CharReplace(s)
+	s = n.EliminateSpace(s)
+	s = n.ShurinkProlongedSoundMark(s)
+	return s
 }
 
 func (n NeologdNormalizer) CharReplace(s string) string {
@@ -129,19 +138,20 @@ func (n NeologdNormalizer) EliminateSpace(s string) string {
 		c, w := utf8.DecodeRuneInString(s[p:])
 		p += w
 		if !unicode.IsSpace(c) {
-			prev = c
 			b.WriteRune(c)
+			prev = c
 			continue
 		}
 		for p < len(s) {
 			c0, w0 := utf8.DecodeRuneInString(s[p:])
 			p += w0
 			if !unicode.IsSpace(c0) {
-				if unicode.In(prev, unicode.Latin) && unicode.In(c0, unicode.Latin) {
+				if unicode.In(prev, unicode.Latin, latinSymbols) &&
+					unicode.In(c0, unicode.Latin, latinSymbols) {
 					b.WriteRune(' ')
 				}
-				prev = c0
 				b.WriteRune(c0)
+				prev = c0
 				break
 			}
 		}

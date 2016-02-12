@@ -85,6 +85,10 @@ func TestNormalize(t *testing.T) {
 			in:  "南アルプスの　天然水　Ｓｐａｒｋｉｎｇ　Ｌｅｍｏｎ　レモン一絞り",
 			out: "南アルプスの天然水Sparking Lemonレモン一絞り",
 		},
+		{
+			in:  "南アルプスの　天然水-　Ｓｐａｒｋｉｎｇ*　Ｌｅｍｏｎ+　レモン一絞り",
+			out: "南アルプスの天然水- Sparking*Lemon+レモン一絞り",
+		},
 	}
 	n := NewNeologdNormalizer()
 	for _, d := range data {
